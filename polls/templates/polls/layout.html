@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .btn-primary {
+                background: #4285f4;
+                border: 1px solid #1266f1;
+                color: #ffffff;
+                font-family: 'Open Sans', sans-serif;
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 0.23px;
+                padding: 12px 32px;
+                text-align: center;
+                text-decoration: none;
+                text-transform: uppercase;
+        </style>
+        <title>{% block title %}
+            {% endblock %}
+        </title>
+    </head>
+    <body>
+        <h1>
+            Hey guys!!We are working on django
+        </h1>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>
