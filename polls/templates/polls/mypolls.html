@@ -1,0 +1,19 @@
+{% extends 'polls/layout.html' %}
+{% block content %}
+{% if latest_question_list %}
+<h3>QUESTIONS</h3>
+<ul>
+    {% for question in latest_question_list %}
+    <li>{{ question.question_text }}
+    <ul>
+        {% for choice in question.choice_set.all %}
+        <li>{{ choice.choice_text }}
+        {% endfor %}
+    </ul>
+    {% endfor %}
+</ul>
+        
+{% else %}
+<p>No polls are available.</p>
+{% endif %}
+{% endblock %}

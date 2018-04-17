@@ -1,0 +1,20 @@
+{% extends 'polls/layout.html' %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="jumbotron">
+<div class="container">
+{% if user == None %}
+Your username and password didn't match.
+{% endif %}
+  <h2>Login</h2>
+  <br>
+  <form method="POST" action ="{% url 'polls:login' %}" >
+    <div class="form-group">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Login</button>
+    &nbsp;&nbsp;&nbsp;&nbsp;<a href= "{% url 'polls:register' %}">Not yet registered?Sign Up</a>
+    </div>
+  </form>
+</div></div>
+{% endblock %}

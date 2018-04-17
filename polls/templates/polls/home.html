@@ -1,4 +1,9 @@
 {% extends 'polls/layout.html' %}
 {% block content %}
-<h1>HOMEPAGE</h1>
+<div class="container">
+        <br>
+        <div class="jumbotron">
+    <a href= "{% url 'polls:login' %}" class="btn-primary">LOGIN</a>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <a href= "{% url 'polls:register' %}" class="btn-primary">SIGN-UP</a>
 {% endblock %}
