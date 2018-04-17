@@ -1,4 +1,4 @@
-{% extends 'polls/layout.html' %}
+{% extends 'polls/dashlayout.html' %}
 {% block content %}
 {% if user.is_authenticated %}
 <h3 align="right"> Logged In: {{ user.username }} </h3>
@@ -6,10 +6,6 @@
 <h3> You are not logged in </h3>
 {% endif %}
 <h2>DASHBOARD</h2>
-<br>
-<a href = "{% url 'polls:mypolls' %}" class="btn-primary">MY POLLS</a>
-<a href = "{% url 'polls:logout' %}" class="btn-primary" style="float:right">LOGOUT</a>
-<br>
 {% if latest_question_list %}
 <h3><u>DISCOVER POLLS</u></h3>
 <br><br>
