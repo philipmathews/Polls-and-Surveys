@@ -1,32 +1,36 @@
-{% extends 'polls/dashlayout.html' %}
+{% extends 'polls/dashboardlayout.html' %}
 {% block content %}
 {% if user.is_authenticated %}
 <h3 align="right"> Logged In: {{ user.username }} </h3>
 {% else %}
 <h3> You are not logged in </h3>
 {% endif %}
-<h2>DASHBOARD</h2>
 {% if latest_question_list %}
-<h3><u>DISCOVER POLLS</u></h3>
 <br><br>
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-    <ul>
+<div class="jumbotron">
+<h3><u>DISCOVER POLLS</u></h3>
+<div class="container">
+{% if error_message %}<p style="color:red"><strong>{{ error_message }}</strong></p>{% endif %}
+<br>
+    <ol>
     {% for question in latest_question_list %}
-    <li>{{ question.question_text }}
+    <li><h4>{{ question.question_text }}</h4>
     <ul>
-        
-            <form action="{% url 'polls:vote' question.id %}"  method="post">
-                    {% csrf_token %}
-                    {% for choice in question.choice_set.all %}
-                        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
-                        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br />
-                    {% endfor %}
-                    <input type="submit" value="Vote" />
-            </form>
+        <form action="{% url 'polls:vote' question.id %}"  method="post">
+            {% csrf_token %}
+            {% for choice in question.choice_set.all %}
+            <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
+            <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br />
+            {% endfor %}
+            <br>
+            <input type="submit" value="Vote" />
+        </form>
     </ul>
     {% endfor %}
-    </ul>
+    </ol>
 {% else %}
     <p>No polls are available.</p>
 {% endif %}
+</div>
+</div>
 {% endblock %}

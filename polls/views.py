@@ -10,7 +10,7 @@ from django.contrib.auth import login, authenticate,logout
 
 from django.contrib.auth.decorators import login_required
 
-from .forms import UserLoginForm
+from .forms import UserLoginForm,PollForm,PollChoiceForm
 
 from django.contrib.auth.models import User
 
@@ -78,6 +78,7 @@ def dashboard(request):
     }
     return render(request, 'polls/dashboard.html',context)
 
+@login_required(login_url='/login')
 def vote(request,question_id):
     username = request.user
     latest_question_list = Question.objects.exclude(username = username)
@@ -104,9 +105,10 @@ def vote(request,question_id):
         else:
             return render(request, 'polls/dashboard.html', {
                 'latest_question_list': latest_question_list,
-                'error_message': "You cant vote twice",
+                'error_message': "You have already voted for that question",
                 })
 
+@login_required(login_url='/login')
 def mypolls(request):
     username = request.user
     latest_question_list = Question.objects.filter(username = username)
@@ -114,3 +116,87 @@ def mypolls(request):
         'latest_question_list': latest_question_list,
     }
     return render(request, 'polls/mypolls.html',context)
+
+@login_required(login_url='/login')
+def createpolls(request):
+    if request.method == 'POST':
+        form = PollForm(request.POST)
+        if form.is_valid():
+            username = request.user
+            question = username.question_set.create(question_text=request.POST['question_text'],pub_date=request.POST['pub_date'])
+            return redirect('polls:mypolls')
+    else:
+        form = PollForm()
+    username = request.user
+    latest_question_list = Question.objects.filter(username = username)
+    context = { 'form' : form,'latest_question_list': latest_question_list }
+    return render(request,'polls/createpolls.html', context)
+
+@login_required(login_url='/login')
+def createchoice(request,question_id):
+    if request.method == 'POST':
+        form = PollChoiceForm(request.POST)
+        if form.is_valid():
+            question = get_object_or_404(Question, pk=question_id)
+            choice = question.choice_set.create(choice_text=request.POST['choice_text'])
+            question.choice_set.update(votes =0)
+            vote = Votes.objects.filter(question_text= question.question_text)
+            vote.delete()
+            return redirect('polls:mypolls')
+    else:
+        form = PollChoiceForm()
+    question = get_object_or_404(Question, pk=question_id)
+    context = { 'form' : form,'question' : question}
+    return render(request,'polls/createchoice.html', context)
+
+@login_required(login_url='/login')
+def editpoll(request,question_id):
+    if request.method == 'POST':
+        form = PollForm(request.POST)
+        if form.is_valid():
+            question = get_object_or_404(Question,pk=question_id)
+            question.question_text = request.POST['question_text']
+            question.pub_date = request.POST['pub_date']
+            question.save()
+            question.choice_set.update(votes =0)
+            vote = Votes.objects.filter(question_text= question.question_text)
+            vote.delete()
+            return redirect('polls:mypolls')
+    else:
+        question = get_object_or_404(Question,pk=question_id)
+        data={'question_text' : question.question_text,'pub_date' : question.pub_date}
+        form = PollForm(data)
+
+    context = { 'form' : form, 'question' : question }
+    return render(request,'polls/editpoll.html', context)
+
+@login_required(login_url='/login')
+def editchoice(request,choice_id):
+    if request.method == 'POST':
+        form = PollChoiceForm(request.POST)
+        if form.is_valid():
+            choice = get_object_or_404(Choice,pk=choice_id)
+            choice.choice_text = request.POST['choice_text']
+            choice.votes = 0
+            choice.save()
+            question = choice.question
+            question.choice_set.update(votes =0)
+            vote = Votes.objects.filter(question_text= question)
+            vote.delete()
+            return redirect('polls:mypolls')
+    else:
+        choice = get_object_or_404(Choice,pk=choice_id)
+        data={'choice_text' : choice.choice_text}
+        form = PollChoiceForm(data)
+    
+    context = { 'form' : form, 'choice' : choice }
+    return render(request,'polls/editchoice.html', context)
+
+@login_required(login_url='/login')
+def deletepoll(request,question_id):
+     question = get_object_or_404(Question,pk=question_id)
+     question.delete()
+     vote = Votes.objects.filter(question_text= question.question_text)
+     vote.delete()
+     return redirect('polls:mypolls')
+

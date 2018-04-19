@@ -1,4 +1,4 @@
-{% extends 'polls/dashlayout.html' %}
+{% extends 'polls/dashboardlayout.html' %}
 {% block content %}
 <h1>You have voted for <u>{{choice.choice_text}}</u></h1> 
 <a href="{% url 'polls:dashboard' %}">Vote again?</a>
