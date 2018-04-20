@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
 
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
 from .models import Question, Choice, Votes
 
@@ -199,4 +199,33 @@ def deletepoll(request,question_id):
      vote = Votes.objects.filter(question_text= question.question_text)
      vote.delete()
      return redirect('polls:mypolls')
+
+@login_required(login_url='/login')
+def deletechoice(request,choice_id):
+     choice = get_object_or_404(Choice,pk=choice_id)
+     choice.delete()
+     vote = Votes.objects.filter(question_text= choice.question)
+     vote.delete()
+     return redirect('polls:mypolls')
+
+def chart(request,question_id):
+    return render(request,'polls/chart.html',{"question_id" : question_id})
+
+
+def chartdata(request,question_id):
+    votes=[]
+    ch=[]
+    question = get_object_or_404(Question,pk=question_id)
+    choices = question.choice_set.all()
+    for choice in choices:
+        ch.append(choice.choice_text)
+        votes.append(choice.votes)
+    qs_count = User.objects.all().count()
+    labels = ch
+    default_items = votes
+    data={
+        "labels" : labels,
+        "default" : default_items,
+    }
+    return JsonResponse(data)
 

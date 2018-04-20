@@ -5,13 +5,13 @@
                         <h4 class="modal-title">CREATE POLLS</h4>
                 </div>
                  <div class="modal-body">
-                     <form method="POST" action ="{% url 'polls:createpolls' %}">
+                     <form id="form1" method="POST" action ="{% url 'polls:createpolls' %}">
                              {% csrf_token %}
                              <table>
                              {{ form.as_table }}
                              </table>
                  <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">CREATE</button>
+                        <button onclick="myfunc()" id="formsubmit" type="submit" class="btn btn-primary">CREATE</button>
                     </form>
                     <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
                     </div>

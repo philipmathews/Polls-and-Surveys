@@ -17,4 +17,7 @@ urlpatterns = [
     path('dashboard/editpoll/<int:question_id>',views.editpoll, name='editpoll'),
     path('dashboard/editchoice/<int:choice_id>',views.editchoice, name='editchoice'),
     path('dashboard/deletepoll/<int:question_id>',views.deletepoll, name='deletepoll'),
+    path('dashboard/deletechoice/<int:choice_id>',views.deletechoice, name='deletechoice'),
+    path('dashboard/mypolls/chart/<int:question_id>',views.chart, name='chart'),
+    path('dashboard/mypolls/chart/data/<int:question_id>',views.chartdata, name='chartdata'),
 ]
