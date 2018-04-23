@@ -32,3 +32,32 @@ class Votes(models.Model):
 
     def __str__(self):
         return self.username
+
+class Surveytitle(models.Model):
+    title = models.CharField(max_length=100)
+    modified = models.DateTimeField('date modified')
+    responses = models.IntegerField(default=0)
+    username = models.ForeignKey(User,on_delete=models.CASCADE)
+
+    def was_modified_recently(self):
+        return self.modified >= timezone.now() - datetime.timedelta(days=1)
+
+    def __str__(self):
+        return self.title
+
+class Surveyquestion(models.Model):
+    title = models.ForeignKey(Surveytitle,on_delete=models.CASCADE,null=True)
+    question = models.CharField(max_length=200)
+    username = models.ForeignKey(User,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.question
+
+class Surveyanswer(models.Model):
+    title = models.ForeignKey(Surveytitle,on_delete=models.CASCADE,null=True)
+    question = models.ForeignKey(Surveyquestion,on_delete=models.CASCADE)
+    answer = models.TextField()
+    username = models.ForeignKey(User,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.answer

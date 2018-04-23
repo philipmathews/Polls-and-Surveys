@@ -20,4 +20,10 @@ urlpatterns = [
     path('dashboard/deletechoice/<int:choice_id>',views.deletechoice, name='deletechoice'),
     path('dashboard/mypolls/chart/<int:question_id>',views.chart, name='chart'),
     path('dashboard/mypolls/chart/data/<int:question_id>',views.chartdata, name='chartdata'),
+    path('dashboard/surveys/',views.surveys, name='surveys'),
+    path('dashboard/mysurveys',views.mysurveys, name='mysurveys'),
+    path('dashboard/mysurveys/createsurveys/<int:question_count>',views.createsurveys, name='createsurveys'),
+    path('dashboard/mysurveys/editsurvey/<int:title_id>',views.editsurvey, name='editsurvey'),
+    path('dashboard/mysurveys/deletesurvey/<int:title_id>',views.deletesurvey, name='deletesurvey'),
+    path('dashboard/surveys/surveyresponse/<int:title_id>',views.surveyresponse, name='surveyresponse'),
 ]

@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect, get_list_or_40
 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
-from .models import Question, Choice, Votes
+from .models import Question, Choice, Votes, Surveytitle, Surveyquestion, Surveyanswer
 
 from django.contrib.auth.forms import UserCreationForm
 
@@ -10,11 +10,13 @@ from django.contrib.auth import login, authenticate,logout
 
 from django.contrib.auth.decorators import login_required
 
-from .forms import UserLoginForm,PollForm,PollChoiceForm
+from .forms import UserLoginForm,PollForm,PollChoiceForm,SurveyForm,SurveyResponseForm
 
 from django.contrib.auth.models import User
 
 from django.urls import reverse
+
+from django.forms import formset_factory,BaseFormSet
 
 def home(request):
     if request.user.is_authenticated:
@@ -228,4 +230,115 @@ def chartdata(request,question_id):
         "default" : default_items,
     }
     return JsonResponse(data)
+
+def surveys(request):
+    username = request.user
+    latest_survey_list = Surveytitle.objects.exclude(username = username)
+    context = {
+        'latest_survey_list': latest_survey_list,
+    }
+    return render(request, 'polls/surveys.html',context)
+
+def mysurveys(request):
+    username = request.user
+    latest_survey_list = Surveytitle.objects.filter(username = username)
+    context = {
+        'latest_survey_list': latest_survey_list,
+    }
+    return render(request, 'polls/mysurveys.html',context)
+
+def createsurveys(request,question_count):
+    surveyformset = formset_factory(SurveyForm,extra=question_count)
+    if request.method == 'POST':
+        formset= surveyformset(request.POST)
+        if formset.is_valid():
+            i=0
+            username = request.user
+            survey = username.surveytitle_set.create(title = request.POST['title'],modified = request.POST['pub_date'])
+            title = get_object_or_404(Surveytitle,title = request.POST['title'])
+            for form in formset:
+                questions = title.surveyquestion_set.create(question = request.POST['form-%d-question' % i],username = username)
+                i=i+1
+            return redirect('polls:mysurveys')
+        else:
+            return render(request,'polls/createsurveys.html', {"formset" : formset,"question_count" : question_count})
+    else:
+        formset = surveyformset()
+    context = { 'formset' : formset,"question_count" : question_count}
+    return render(request,'polls/createsurveys.html', context)
+
+def editsurvey(request,title_id):
+    title = get_object_or_404(Surveytitle,pk=title_id)
+    questions = title.surveyquestion_set.all()
+    ordquestions = questions.order_by('id')
+    initialquestiondata = ordquestions.values('question')
+    surveyformset = formset_factory(SurveyForm,extra=0)
+    if request.method == 'POST':
+        formset = surveyformset(request.POST,initial=initialquestiondata)
+        if formset.is_valid():
+            if formset.has_changed():
+                for i,question in zip(range(len(formset)),ordquestions):
+                        surveyquestion = get_object_or_404(Surveyquestion,pk=question.id)
+                        surveyquestion.question = request.POST['form-%d-question' % i]
+                        surveyquestion.save()
+                title.modified = request.POST['pub_date']
+                title.save()
+            else:
+                print("No Change")
+            return redirect('polls:mysurveys')
+    else:
+        formset = surveyformset(initial=initialquestiondata)
+    context = { 'formset' : formset,'title_id' : title_id,'title' : title}
+    return render(request,'polls/editsurvey.html', context)
+
+def deletesurvey(request,title_id):
+    title = get_object_or_404(Surveytitle,pk=title_id)
+    title.delete()
+    return redirect('polls:mysurveys')
+
+def surveyresponse(request,title_id):
+    username = request.user
+    title = get_object_or_404(Surveytitle,pk=title_id)
+    questions = title.surveyquestion_set.all()
+    ordquestions = questions.order_by('id')
+    initialquestiondata = ordquestions.values('question')
+    answers = title.surveyanswer_set.filter(username=username)
+    ordanswers = answers.order_by('id')
+    initialanswerdata = ordanswers.values('answer')
+    data=[]
+    if len(initialanswerdata) != 0:
+        for i,f in zip(initialquestiondata,initialanswerdata):
+            z=dict(list(i.items()) + list(f.items()))
+            data.append(z)
+    else:
+        for i in initialquestiondata:
+            data.append(i)
+    surveyformset = formset_factory(SurveyResponseForm,extra=0)
+    if request.method == 'POST':
+        formset = surveyformset(request.POST,initial=data)
+        if formset.is_valid():
+            if formset.has_changed():
+                for i,question in zip(range(len(formset)),ordquestions):
+                    surveyquestion = get_object_or_404(Surveyquestion,pk=question.id)
+                    question.surveyanswer_set.create(title=question.title,answer=request.POST['form-%d-answer' % i],username = username)
+                title.responses = title.responses + 1
+                title.save()
+            else:
+                print("No Change")
+            return redirect('polls:surveys')
+    else:
+        formset = surveyformset(initial=data)
+    context = { 'formset' : formset,'title_id' : title_id,'title' : title}
+    return render(request,'polls/surveyresponse.html', context)
+
+
+
+
+
+
+
+
+
+
+
 

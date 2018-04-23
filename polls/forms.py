@@ -11,3 +11,11 @@ class PollForm(forms.Form):
 
 class PollChoiceForm(forms.Form):
     choice_text = forms.CharField(max_length=200)
+
+class SurveyForm(forms.Form):
+    question = forms.CharField(widget=forms.TextInput(attrs={'required' : 'required'}),max_length =200)
+    answer = forms.CharField(widget=forms.Textarea(),required=False)
+
+class SurveyResponseForm(forms.Form):
+    question = forms.CharField(widget=forms.TextInput(attrs={'required' : 'required','readonly' : 'readonly'}),max_length =200)
+    answer = forms.CharField(widget=forms.Textarea(attrs={'required' : 'required'}))
