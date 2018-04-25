@@ -18,7 +18,7 @@
         <a href="{% url 'polls:deletesurvey' survey.id %}" onclick="return confirm('Are you sure you want to Delete?');">DELETE</a>
         <br><br>
         <ul>
-            <li>RESPONSES : {{ survey.responses }}</li>
+            <li>RESPONSES : {{ survey.responses }}&nbsp;&nbsp;<a href="{% url 'polls:showresponders' survey.id %}">Show</a></li>
             <li>MODIFIED ON : {{ survey.modified }}</li>
         </ul>
         {% endfor %}

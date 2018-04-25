@@ -14,8 +14,12 @@ class PollChoiceForm(forms.Form):
 
 class SurveyForm(forms.Form):
     question = forms.CharField(widget=forms.TextInput(attrs={'required' : 'required'}),max_length =200)
-    answer = forms.CharField(widget=forms.Textarea(),required=False)
+    answer = forms.CharField(widget=forms.Textarea(attrs={'readonly' : 'readonly'}),required=False)
 
 class SurveyResponseForm(forms.Form):
     question = forms.CharField(widget=forms.TextInput(attrs={'required' : 'required','readonly' : 'readonly'}),max_length =200)
     answer = forms.CharField(widget=forms.Textarea(attrs={'required' : 'required'}))
+
+class ViewSurveyForm(forms.Form):
+    question = forms.CharField(widget=forms.TextInput(attrs={'readonly' : 'readonly'}))
+    answer = forms.CharField(widget=forms.Textarea(attrs={'readonly' : 'readonly'}))

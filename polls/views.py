@@ -10,13 +10,15 @@ from django.contrib.auth import login, authenticate,logout
 
 from django.contrib.auth.decorators import login_required
 
-from .forms import UserLoginForm,PollForm,PollChoiceForm,SurveyForm,SurveyResponseForm
+from .forms import UserLoginForm,PollForm,PollChoiceForm,SurveyForm,SurveyResponseForm, ViewSurveyForm
 
 from django.contrib.auth.models import User
 
 from django.urls import reverse
 
 from django.forms import formset_factory,BaseFormSet
+
+from datetime import datetime
 
 def home(request):
     if request.user.is_authenticated:
@@ -103,7 +105,7 @@ def vote(request,question_id):
             selected_choice.save()
             u = Votes(username = username,question_text = question)
             u.save()
-            return render(request, 'polls/vote.html',{'choice' : selected_choice})
+            return render(request, 'polls/dashboard.html',{'latest_question_list': latest_question_list,'selected_choice' : selected_choice})
         else:
             return render(request, 'polls/dashboard.html', {
                 'latest_question_list': latest_question_list,
@@ -264,7 +266,7 @@ def createsurveys(request,question_count):
             return render(request,'polls/createsurveys.html', {"formset" : formset,"question_count" : question_count})
     else:
         formset = surveyformset()
-    context = { 'formset' : formset,"question_count" : question_count}
+    context = { 'formset' : formset,"question_count" : question_count,"date" : datetime.today().strftime("%Y-%m-%d %H:%M:%S")}
     return render(request,'polls/createsurveys.html', context)
 
 def editsurvey(request,title_id):
@@ -288,7 +290,7 @@ def editsurvey(request,title_id):
             return redirect('polls:mysurveys')
     else:
         formset = surveyformset(initial=initialquestiondata)
-    context = { 'formset' : formset,'title_id' : title_id,'title' : title}
+    context = { 'formset' : formset,'title_id' : title_id,'title' : title,"date" : datetime.today().strftime("%Y-%m-%d %H:%M:%S")}
     return render(request,'polls/editsurvey.html', context)
 
 def deletesurvey(request,title_id):
@@ -328,17 +330,40 @@ def surveyresponse(request,title_id):
             return redirect('polls:surveys')
     else:
         formset = surveyformset(initial=data)
-    context = { 'formset' : formset,'title_id' : title_id,'title' : title}
+    context = { 'formset' : formset,'title_id' : title_id,'title' : title,"date" : datetime.today().strftime("%Y-%m-%d %H:%M:%S")}
     return render(request,'polls/surveyresponse.html', context)
 
 
+def showresponders(request,title_id):
+    title = get_object_or_404(Surveytitle,pk=title_id)
+    answers = title.surveyanswer_set.all()
+    ordanswers = answers.order_by('id')
+    usernamedata=[]
+    for answer in ordanswers:
+        surveyanswer = get_object_or_404(Surveyanswer,pk=answer.id)
+        username = surveyanswer.username
+        usernamedata.append(username)
+    usernames = list(set(usernamedata))
+    return render(request,'polls/showresponders.html', {"usernames" : usernames,"title" : title})
 
-
-
-
-
-
-
-
-
-
+def showresponse(request,username,title_id):
+    user = get_object_or_404(User,username=username)
+    title = get_object_or_404(Surveytitle,pk=title_id)
+    questions = title.surveyquestion_set.all()
+    ordquestions = questions.order_by('id')
+    initialquestiondata = ordquestions.values('question')
+    answers = user.surveyanswer_set.filter(title=title)
+    ordanswers = answers.order_by('id')
+    initialanswerdata = ordanswers.values('answer')
+    data=[]
+    if len(initialanswerdata) != 0:
+        for i,f in zip(initialquestiondata,initialanswerdata):
+            z=dict(list(i.items()) + list(f.items()))
+            data.append(z)
+    else:
+        for i in initialquestiondata:
+            data.append(i)
+    surveyformset = formset_factory(ViewSurveyForm,extra=0)
+    formset = surveyformset(initial=data)
+    context = { 'formset' : formset,'title_id' : title_id,'title' : title,"date" : datetime.today().strftime("%Y-%m-%d %H:%M:%S")}
+    return render(request,'polls/showresponse.html', context)

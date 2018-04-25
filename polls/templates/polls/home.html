@@ -1,11 +1,12 @@
 {% extends 'polls/layout.html' %}
 {% block content %}
+{% load staticfiles %}
 <div class="container">
         <br>
         <div class="jumbotron">
-    <a href= "{% url 'polls:login' %}" class="btn-primary">LOGIN</a>
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    <a href= "{% url 'polls:register' %}" class="btn-primary">SIGN-UP</a>
+    <h3>WELCOME TO POLLS AND SURVEYS</h3>
+    <br><br>
+    <img src="{% static "polls/img/polls.jpg" %}" alt="home image" class="center" />
     </div>
 </div>
 {% endblock %}

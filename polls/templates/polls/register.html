@@ -1,5 +1,7 @@
 {% extends 'polls/layout.html' %}
+{% load bootstrap4 %}
 {% block content %}
+<div class="container">
 <div class="jumbotron">
 <div class="container">
   <h2>Sign up</h2>
@@ -7,9 +9,12 @@
   <form method="POST">
     <div class="form-group">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% bootstrap_form form %}
+    {% buttons %}
     <button type="submit">Sign up</button>
+    {% endbuttons %}
     </div>
   </form>
 </div></div>
+</div>
 {% endblock %}

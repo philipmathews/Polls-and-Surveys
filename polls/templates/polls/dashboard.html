@@ -11,20 +11,25 @@
 <div class="jumbotron">
 <h3><u>DISCOVER POLLS</u></h3>
 <div class="container">
+{% if selected_choice %}<h1>You have voted for&nbsp;&nbsp;<u>{{selected_choice.choice_text}}</u></h1>{% endif %} 
 {% if error_message %}<p style="color:red"><strong>{{ error_message }}</strong></p>{% endif %}
 <br>
     <ol>
     {% for question in latest_question_list %}
+    
     <li><h4>{{ question.question_text }}</h4>
+    <br>
+    <a href="{% url 'polls:chart' question.id %}" class="btn-primary">CURRENT STATS</a>
+    <br><br><br>
     <ul>
-        <form action="{% url 'polls:vote' question.id %}"  method="post">
+        <form id="voteform" action="{% url 'polls:vote' question.id %}"  method="POST">
             {% csrf_token %}
             {% for choice in question.choice_set.all %}
             <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
-            <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br />
+            <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br/>
             {% endfor %}
             <br>
-            <input type="submit" value="Vote" />
+            <input type="submit" value="Vote"/>
         </form>
     </ul>
     {% endfor %}

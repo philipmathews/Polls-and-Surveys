@@ -26,4 +26,6 @@ urlpatterns = [
     path('dashboard/mysurveys/editsurvey/<int:title_id>',views.editsurvey, name='editsurvey'),
     path('dashboard/mysurveys/deletesurvey/<int:title_id>',views.deletesurvey, name='deletesurvey'),
     path('dashboard/surveys/surveyresponse/<int:title_id>',views.surveyresponse, name='surveyresponse'),
+    path('dashboard/mysurveys/showresponders/<int:title_id>',views.showresponders, name='showresponders'),
+    path('dashboard/mysurveys/showresponders/showresponse/<username>/<int:title_id>',views.showresponse, name='showresponse'),
 ]

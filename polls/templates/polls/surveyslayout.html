@@ -8,9 +8,15 @@
     $(document).ready(function(){
         $("#surveybutton").click(function(){
             var question_count = prompt("How many Questions do you need in your Survey Form?");
-            if (question_count != null || question_count != ""){
+            if (question_count == ""){
+                location.reload()
+            }
+            else if(question_count){
                 var url = "{% url 'polls:createsurveys' 1234 %}".replace(/1234/, question_count.toString());
                 $("#surveyModal").load(url);
+            }
+            else{
+                location.reload();
             }
          });
         });
@@ -25,6 +31,13 @@
      function responsesurveyfunc(title_id){
          var url = "{% url 'polls:surveyresponse' 1234 %}".replace(/1234/, title_id.toString());
          $("#surveyresponseModal").load(url);
+        }
+    </script>
+    <script>
+    function showresponsefunc(username,title_id){
+        var url = "{% url 'polls:showresponse' 1234 2345 %}".replace(/1234/,username);
+        var fullurl = url.replace(/2345/,title_id.toString())
+        $("#showresponseModal").load(fullurl);
         }
     </script>
     <style>
