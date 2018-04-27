@@ -21,11 +21,18 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '*&)88#@t2*u_h7vndt=u6=$blq2*eo&4%+(gu!%!sps-9)*l6x'
+GOOGLE_RECAPTCHA_SECRET_KEY = '6LeM4lMUAAAAACGUC0Gu1RU2B5a7UgUsNasG1OLQ'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'aakash.django@gmail.com'
+EMAIL_HOST_PASSWORD = 'mai7ka8a'
+EMAIL_PORT = 587
 
 
 # Application definition
@@ -70,6 +77,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'g_project.wsgi.application'
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 
 # Database

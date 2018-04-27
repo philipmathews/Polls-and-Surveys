@@ -4,13 +4,13 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
 from .models import Question, Choice, Votes, Surveytitle, Surveyquestion, Surveyanswer
 
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm,PasswordChangeForm
 
-from django.contrib.auth import login, authenticate,logout
+from django.contrib.auth import login, authenticate,logout,update_session_auth_hash
 
 from django.contrib.auth.decorators import login_required
 
-from .forms import UserLoginForm,PollForm,PollChoiceForm,SurveyForm,SurveyResponseForm, ViewSurveyForm
+from .forms import UserLoginForm,PollForm,PollChoiceForm,SurveyForm,SurveyResponseForm, ViewSurveyForm, SignupForm
 
 from django.contrib.auth.models import User
 
@@ -18,7 +18,28 @@ from django.urls import reverse
 
 from django.forms import formset_factory,BaseFormSet
 
+from django.contrib import messages
+
+from django.conf import settings
+
+from django.template.loader import render_to_string
+
+from django.contrib.sites.shortcuts import get_current_site
+
+from django.utils.encoding import force_bytes, force_text
+
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
+from .tokens import account_activation_token
+
+from django.core.mail import EmailMessage
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 from datetime import datetime
+
+import requests
+
 
 def home(request):
     if request.user.is_authenticated:
@@ -53,25 +74,78 @@ def log_out(request):
     return redirect('polls:home')
 
 
-
 def register(request):
     if request.user.is_authenticated:
         return redirect('polls:dashboard')
     
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignupForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('polls:dashboard')
+            recaptcha_response = request.POST.get('g-recaptcha-response')
+            data = {
+                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+                'response': recaptcha_response
+            }
+            r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
+            result = r.json()
+
+            if result['success']:
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+                current_site = get_current_site(request)
+                mail_subject = 'Activate your account.'
+                message = render_to_string('polls/acc_active_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid':urlsafe_base64_encode(force_bytes(user.pk)).decode(),
+                    'token':account_activation_token.make_token(user),
+                })
+                to_email = form.cleaned_data.get('email')
+                email = EmailMessage(mail_subject, message, to=[to_email])
+                email.send()
+                return HttpResponse('An activation Link has been sent to your email address.Please Check your Inbox')
+            else:
+                messages.error(request, 'Invalid reCAPTCHA. Please try again.')
     else:
-        form = UserCreationForm()
+        form = SignupForm()
 
     context = { 'form' : form }
     return render(request, 'polls/register.html', context)
+
+
+def activate(request, uidb64, token,backend='django.contrib.auth.backends.ModelBackend'):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        messages.success(request, 'Thank you for your email confirmation. Now you have logged In')
+        return redirect('polls:dashboard')
+        # return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+    else:
+        return HttpResponse('Activation link is invalid!')
+
+
+@login_required(login_url='/login')
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('polls:change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'polls/change_password.html', {'form': form})
+
 
 @login_required(login_url='/login')
 def dashboard(request):
@@ -283,10 +357,11 @@ def editsurvey(request,title_id):
                         surveyquestion = get_object_or_404(Surveyquestion,pk=question.id)
                         surveyquestion.question = request.POST['form-%d-question' % i]
                         surveyquestion.save()
-                title.modified = request.POST['pub_date']
-                title.save()
             else:
                 print("No Change")
+            title.title = request.POST['title']
+            title.modified = request.POST['pub_date']
+            title.save()
             return redirect('polls:mysurveys')
     else:
         formset = surveyformset(initial=initialquestiondata)
