@@ -2,4 +2,7 @@
 Hi {{ user.username }},
 Please click on the link to confirm your registration,
 http://{{ domain }}{% url 'polls:activate' uidb64=uid token=token %}
+
+Sincerely,
+Polls and Survey Team
 {% endautoescape %}
