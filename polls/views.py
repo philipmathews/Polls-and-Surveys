@@ -397,7 +397,10 @@ def surveyresponse(request,title_id):
             if formset.has_changed():
                 for i,question in zip(range(len(formset)),ordquestions):
                     surveyquestion = get_object_or_404(Surveyquestion,pk=question.id)
-                    question.surveyanswer_set.create(title=question.title,answer=request.POST['form-%d-answer' % i],username = username)
+                    if question.surveyanswer_set.filter(username=username).exists():
+                        question.surveyanswer_set.update(title=question.title,answer=request.POST['form-%d-answer' % i],username = username)
+                    else:
+                        question.surveyanswer_set.create(title=question.title,answer=request.POST['form-%d-answer' % i],username = username)
                 title.responses = title.responses + 1
                 title.save()
             else:
